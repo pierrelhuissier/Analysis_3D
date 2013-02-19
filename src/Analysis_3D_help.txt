@@ -41,9 +41,16 @@ For any information please ask
 
 +Median : 
 
-    3D fast median filter : works only with cubic structural element
+    3D median filter : works only with cubic structural element and 8 bits volume
     Size 1 means a cube of 3x3x3 for a cubic structural element
 
++Median_fast : 
+
+    3D fast median filter : works only with cubic structural element
+    8 bits and 16 bits volumes can be processed
+    Due to parallelization, the plugin is memory consuming. 
+    We advice to use "Median" plugin in case of memory issue.
+    Size 1 means a cube of 3x3x3 for a cubic structural element
 
 +Labeling :
 
