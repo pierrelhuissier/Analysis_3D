@@ -3,6 +3,7 @@ import ij.gui.GenericDialog;
 import ij.io.SaveDialog;
 import ij.plugin.*;
 import ij.process.*;
+import particle.*;
 
 
 import java.io.BufferedOutputStream;
@@ -25,7 +26,8 @@ public void run(String arg) {
 	int dimy = stack.getHeight();
 
 	SaveDialog sd = new SaveDialog("Input Parameter File :", "param", ".dat");
-    String name = sd.getFileName();
+        String name = sd.getFileName();
+        String prefix = name;
    	if (name == null)
         	return;
     
@@ -33,8 +35,14 @@ public void run(String arg) {
 
    	ParticlesSet raw = readParamFile(directory,name);
 	
+   	
+    IJ.log("Write some test results.\n");
+    String testName = directory+ prefix + "_test.dat";
+    writeParamFile(testName,raw);
+
+   	
    	boolean keepSelection = true;
-   	String color="";
+   	//String color="";
    	
    	double[] xextr = new double[2];
    	xextr[0]=0;
@@ -72,7 +80,7 @@ public void run(String arg) {
 	
  	GenericDialog dia = new GenericDialog("ParamFilter :", IJ.getInstance());
  	dia.addCheckbox("Keep_Selection", keepSelection);
- 	dia.addStringField("Color", color);
+ 	//dia.addStringField("Color", color);
  	dia.addNumericField("x_min", xextr[0],0);
  	dia.addNumericField("x_max", xextr[1],0);
  	dia.addNumericField("y_min", yextr[0],0);
@@ -108,7 +116,7 @@ public void run(String arg) {
 	}
 
 	keepSelection=dia.getNextBoolean();
-	color=dia.getNextString();
+	//color=dia.getNextString();
 	xextr[0]=dia.getNextNumber();
 	xextr[1]=dia.getNextNumber();
 	yextr[0]=dia.getNextNumber();
@@ -135,24 +143,46 @@ public void run(String arg) {
 	Boundextr[1]=dia.getNextBoolean();
 	recolor=dia.getNextBoolean();
 	
+	IJ.log("Write filtering parameters.\n");
+	String paramFilterName = directory+ prefix + "_filterParamters.dat";
+	writeFilteringParamFile(paramFilterName, keepSelection, xextr, yextr, zextr, volumeextr, sphericityextr, dxextr, dyextr, dzextr, Fabextr, Facextr, Fbcextr, Boundextr, recolor);
 
+	IJ.log("Volume contains " + raw.getParticles().size() + " objects");
 	ParticlesSet filtered0 = raw.subSetCenter(xextr[0], xextr[1], yextr[0], yextr[1], zextr[0], zextr[1],keepSelection);
+	IJ.log("After center position filter " + filtered0.getParticles().size() + " objects remaining");
 	ParticlesSet filtered1 = filtered0.subSetVolume(volumeextr[0], volumeextr[1],keepSelection);
+	IJ.log("After volume filter " + filtered1.getParticles().size() + " objects remaining");
 	ParticlesSet filtered2 = filtered1.subSetDbox(dxextr[0], dxextr[1], dyextr[0], dyextr[1], dzextr[0], dzextr[1],keepSelection);
+	IJ.log("After box size filter " + filtered2.getParticles().size() + " objects remaining");
 	ParticlesSet filtered3 = filtered2.subSetShape(Fabextr[0], Fabextr[1], Facextr[0], Facextr[1], Fbcextr[0], Fbcextr[1],keepSelection);
+	IJ.log("After shape filter " + filtered3.getParticles().size() + " objects remaining");
 	ParticlesSet filtered4 = filtered3.subSetBoundary(Boundextr[0], Boundextr[1],keepSelection);
+	IJ.log("After boundary contact filter " + filtered4.getParticles().size() + " objects remaining");
 	ParticlesSet filtered5 = filtered4.subSetSphericity(sphericityextr[0], sphericityextr[1],keepSelection);
-	ParticlesSet filtered6 = filtered5.subSetColor(color,keepSelection);
+	IJ.log("After sphericity filter " + filtered5.getParticles().size() + " objects remaining");
+	ParticlesSet filtered6;
+	/*
+	 if(color!="")
+	 
+	{
+		filtered6 = filtered5.subSetColor(color,keepSelection);
+		IJ.log("After color filter " + filtered6.getParticles().size() + " objects remaining");
+	}
+	else
+	{
+		filtered6 = filtered5;
+	}
+	*/
 	//write Volume
     IJ.log("Write some results.\n");
-    String paramName = directory+ name + "_filtered.dat";
-    writeParamFile(paramName,filtered6);
+    String paramName = directory+ prefix + "_filtered.dat";
+    writeParamFile(paramName,filtered5);
 
     ImageStack outstack;
     if(recolor)
-    	outstack = filtered6.recolor(stack,(int)colorextr[1]);
+    	outstack = filtered5.recolor(stack,(int)colorextr[1]);
     else
-    	outstack = filtered6.recolor_norenumber(stack,(int)colorextr[1]);
+    	outstack = filtered5.recolor_norenumber(stack,(int)colorextr[1]);
     
     
     new ImagePlus("Filtered stack",outstack).show();    
@@ -160,6 +190,55 @@ public void run(String arg) {
 	
 	
 }
+
+public void writeFilteringParamFile(String FileName, boolean keepSelection, double[] xextr, double[] yextr, double[] zextr , double[]
+		volumeextr, double[] sphericityextr, double[] dxextr, double[] dyextr, double[] dzextr, double[] Fabextr, double[] Facextr,
+		double[] Fbcextr, boolean[] Boundextr, boolean recolor)
+{
+	PrintWriter pw = null;
+	try
+	{
+		FileOutputStream fos = new FileOutputStream(FileName);
+		BufferedOutputStream bos = new BufferedOutputStream(fos);
+		pw = new PrintWriter(bos);
+	}
+	
+	catch (IOException e) 
+	{
+		IJ.log("pb" + e);
+		return;
+	}
+	
+	pw.println("Keep_Selection " + keepSelection);
+	pw.println("x_min " + xextr[0]);
+	pw.println("x_max " + xextr[1]);
+	pw.println("y_min " + yextr[0]);
+ 	pw.println("y_max " + yextr[1]);
+ 	pw.println("z_min " + zextr[0]);
+ 	pw.println("z_max " + zextr[1]);
+ 	pw.println("Volume_min " + volumeextr[0]);
+ 	pw.println("Volume_max " + volumeextr[1]);
+ 	pw.println("Sphericity_min " + sphericityextr[0]);
+ 	pw.println("Sphericity_max " + sphericityextr[1]);
+ 	pw.println("dx_min " + dxextr[0]);
+ 	pw.println("dx_max " + dxextr[1]);
+ 	pw.println("dy_min " + dyextr[0]);
+ 	pw.println("dy_max " + dyextr[1]);
+ 	pw.println("dz_min " + dzextr[0]);
+ 	pw.println("dz_max " + dzextr[1]);
+ 	pw.println("Fab_min " + Fabextr[0]);
+ 	pw.println("Fab_max " + Fabextr[1]);
+ 	pw.println("Fac_min " + Facextr[0]);
+ 	pw.println("Fac_max " + Facextr[1]);
+ 	pw.println("Fbc_min " + Fbcextr[0]);
+ 	pw.println("Fbc_max " + Fbcextr[1]);
+ 	pw.println("touching_boundary " + Boundextr[0]);
+ 	pw.println("not_touching_boundary " + Boundextr[1]);
+ 	pw.println("Recolor " + recolor);
+	
+	pw.close();
+}
+
 
 public void writeParamFile(String FileName, ParticlesSet subset)
 {
@@ -261,7 +340,7 @@ public ParticlesSet readParamFile(String filePath, String name)
             				(double)ipp.getPixelValue(34, i), 
             				(double)ipp.getPixelValue(35, i), 
             				(boolean)(ipp.getPixelValue(36, i)==1),
-            				0,
+            				(int)0,
             				""
             				)
             		);
