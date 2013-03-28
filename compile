@@ -1,0 +1,13 @@
+
+rm -rf bin/*
+
+javac -verbose -cp /usr/share/java/ij.jar -sourcepath src -d bin src/segmentation_tools_bit/*.java
+javac -verbose -cp /usr/share/java/ij.jar -sourcepath src -d bin src/*.java
+
+cp src/*.txt bin/.
+cp src/*.config bin/.
+
+jar vfc Analysis_3D.jar -C bin/ .
+
+
+cp Analysis_3D.jar /home/pl/.imagej/plugins/.
