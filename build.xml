@@ -6,7 +6,7 @@
   <property name="build" location="bin" />
   <property name="dist"  location="dist" />
   <property name="api" location="api" />
-	<property name="ijPluginsDir"  location="/home/pl/.imagej/plugins/" />
+	<property name="ijPluginsDir"  location="/usr/local/ImageJ/plugins/" />
 	<property name="docDir"  location="$basedir/../../IJ/plugins/doc/" /> 
   <property name="user.name" value="Pierre Lhuissier - SIMaP/GPM2 - Grenoble University" />
 <target name="main" depends="compress" description="Main target">
@@ -25,21 +25,7 @@
  	<copy file="Analysis_3D.jar" toDir="${ijPluginsDir}" />
   </target>
 
-  <target name="javadocs" description="Build the JavaDocs.">
-    <delete dir="../api" />
-    <mkdir dir="../api" />
-    <javadoc 
-           sourcepath="."
-           packagenames="*.*"
-           destdir="../api"
-           author="true"
-           version="true"
-           use="true"
-           windowtitle="Analysis_3D plugin API">
-    </javadoc>
-    <copy file="../api/*" toDir="${docDir}" />
-  </target>
-  
+
   
    </project>
 
