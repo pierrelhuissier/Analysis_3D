@@ -1,8 +1,14 @@
 
 rm -rf bin/*
 
-javac -verbose -cp /usr/local/ImageJ/ij.jar -sourcepath src -d bin src/segmentation_tools_bit/*.java
-javac -verbose -cp /usr/local/ImageJ/ij.jar -sourcepath src -d bin src/*.java
+ijjardir='/usr/local/ImageJ'
+
+if [ `hostname` = "PLPL" ]; then
+ijjardir='/usr/share/java'
+fi
+
+javac -verbose -cp $ijjardir/ij.jar -sourcepath src -d bin src/segmentation_tools_bit/*.java
+javac -verbose -cp $ijjardir/ij.jar -sourcepath src -d bin src/*.java
 
 cp src/*.txt bin/.
 cp src/*.config bin/.
