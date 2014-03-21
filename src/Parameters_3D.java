@@ -1167,7 +1167,7 @@ void calculinertiestack(final ImageStack stack1, int nb, final double[] xg, fina
 		{
 			for(int l=0;l<3;l++)
 			{
-				for(int m=0; m<=l; m++)
+				for(int m=l; m<3; m++)
 				{
 					I[l][m][j]+=inert[i][j][l][m];
 				}
@@ -1458,6 +1458,7 @@ void sauvegarde(int v1[],double v2[],double s[],double s2[],double xg[],double y
        pw.close();
 
 }
+
 
 int appart(int v,int tab[], int n)
 {
