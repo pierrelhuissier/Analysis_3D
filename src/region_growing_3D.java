@@ -9,7 +9,8 @@ import ij.plugin.filter.*;
 import java.util.LinkedList;
 
 
-public class region_growing_3D implements PlugInFilter{
+    
+public class region_growing_3D implements PlugInFilter, MouseListener{
 
 	protected ImageStack stack;
 	static int valPixelmax=100;
@@ -28,8 +29,11 @@ public class region_growing_3D implements PlugInFilter{
 	
     protected Roi RoiselectedPoints=null;
 	ImagePlus imp;
+    int[] coord;
 
 public int setup(String arg, ImagePlus imp) {
+    coord = new int[3];
+    coord[0]=-1;
     stack=imp.getStack();
     this.imp=imp;
 	return DOES_8G+STACK_REQUIRED;
@@ -216,18 +220,16 @@ public void run(ImageProcessor ip) {
     	for (int y = 0; y < dimy; y++) {
         	for (int x = 0; x< dimx; x++) {
                 int pix= srcPixels[z][ y * dimx + x] & 0xff;
-                pix=pix-1;
+                if(pix>0) pix=pix-1;
                 srcPixels[z][y * dimx + x]= (byte) (pix);
             }
         }
     }
 
-    int[] coord = new int[3];
-    coord[0]=-1;
 
-    IJ.setTool("point");
+//    IJ.setTool("point");
 
-    while(coord[0]==-1){
+/**    while(coord[0]==-1){
         WaitForUserDialog dial1 = new WaitForUserDialog("Select seed", "Select seed by click and press OK");
         dial1.show();
         if(imp.getRoi()!=null){
@@ -236,38 +238,45 @@ public void run(ImageProcessor ip) {
             coord[2] = imp.getSlice();
         }
     }
-
-/**    canvas =(imp.getWindow()).getCanvas();
+*/
+    canvas =(imp.getWindow()).getCanvas();
     canvas.addMouseListener(this);
+//    canvas.addKeyListener(this);
     zoom = canvas.getMagnification();
 
+    IJ.resetEscape();
     IJ.showStatus("click to start region growing  ...   ");
     cont=true;
     coord[0]=-1;
-    while (coord[0]==-1){}
-*/
-    grow(coord);
+    cont=true;
 
+    IJ.showStatus("Finished  ...   ");
 }
 
 /**
+public void keyPressed(KeyEvent e) { 
+    canvas.removeMouseListener(this);
+    canvas.removeKeyListener(this);
+}
+
+public void keyReleased(KeyEvent e) {}
+public void keyTyped(KeyEvent e) {}
+*/
+
 public void mouseReleased(MouseEvent e) {}
 public void mousePressed(MouseEvent e) {}
 public void mouseExited(MouseEvent e) {}
 public void mouseEntered(MouseEvent e) {}
-
 public void mouseClicked(MouseEvent e)
 {
     clickPoint.x = e.getX();
     clickPoint.y = e.getY(); 
-    x_seed = (int) (clickPoint.x/zoom);
-    y_seed = (int) (clickPoint.y/zoom);
-    z_seed = imp.getCurrentSlice();
-    coord[0]=x_seed;
-    coord[1]=y_seed;
-    coord[2]=z_seed;
+    coord[0]= (int) (clickPoint.x/zoom);
+    coord[1] = (int) (clickPoint.y/zoom);
+    coord[2] = imp.getCurrentSlice();
+    grow(coord);
 }
-*/
+
 public void grow(int coord[])
 {
 	int x_seed,y_seed,z_seed;
@@ -276,6 +285,12 @@ public void grow(int coord[])
     z_seed = coord[2];
     ImageProcessor ip = stack.getProcessor(z_seed);
     int pix=(int) ip.getPixelValue(x_seed,y_seed);
+    if(pix==255)
+    {
+        canvas.removeMouseListener(this);
+        return;
+    }
+
     ip.set(x_seed,y_seed,255);
 
     GenericDialog dia = new GenericDialog("3D grower:", IJ.getInstance());	
@@ -283,7 +298,6 @@ public void grow(int coord[])
     dia.addNumericField("max", valPixelmax, 0);
     dia.addChoice("3D connectivity",connect,connect[0]);
     dia.showDialog();
-    cont=false;
     
     if (dia.wasCanceled()) return;
 	else
@@ -303,7 +317,7 @@ public void grow(int coord[])
             valPixelmin=valmin;
             checkForGrow(x_seed,  y_seed, z_seed,dimx,dimy,dimz,255,valmin,valmax);
 
-            IJ.showStatus("region growing ...   ");
+            IJ.showStatus("Region growing ...   ");
             if((pix>=valmin) && (pix<=valmax)) 
             {
                 if (index1=="6")  label3D6(dimx,dimy,dimz,255,valmin,valmax);
@@ -313,7 +327,7 @@ public void grow(int coord[])
                 miseajour (srcPixels ,dimz);	
                 imp.unlock();
                 imp.draw();
-                IJ.showStatus("finished...   ");
+                IJ.showStatus("Click on white to stop...   ");
             }
             else IJ.showMessage("seed point not in min / max range");
         }
