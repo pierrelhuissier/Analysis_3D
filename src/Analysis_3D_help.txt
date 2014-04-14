@@ -1,7 +1,7 @@
 
                  Help on Analysis_3D
                  
-Version 1.2 (04/12/2012)
+Version 1.3 (14/04/2014)
 
 This plugins have been developed at SIMAP-GPM2 - Grenoble University - CNRS - France by
     Pierre Lhuissier
@@ -118,3 +118,12 @@ For any information please ask
     Selection can be keeped or excluded.
     Selected objects can be renumbered (change of color on the image) or not.
     A new parameter file and a new stack with the selected objects are generated.
+
+
++Interactive_Connected_Grow :
+        
+    Interactive connected threshold grower (based on im3d connected threshold grower).
+
+    Requires a point selection as seed.
+
+

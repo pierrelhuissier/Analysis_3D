@@ -222,14 +222,20 @@ public void run(ImageProcessor ip) {
         }
     }
 
-
-    WaitForUserDialog dial1 = new WaitForUserDialog("Select point", "Select the seed point");
-    dial1.show();
     int[] coord = new int[3];
-    coord[0] = imp.getRoi().getPolygon().xpoints[0];
-    coord[1] = imp.getRoi().getPolygon().ypoints[0];
-    coord[2] = imp.getSlice();
+    coord[0]=-1;
 
+    IJ.setTool("point");
+
+    while(coord[0]==-1){
+        WaitForUserDialog dial1 = new WaitForUserDialog("Select seed", "Select seed by click and press OK");
+        dial1.show();
+        if(imp.getRoi()!=null){
+            coord[0] = imp.getRoi().getPolygon().xpoints[0];
+            coord[1] = imp.getRoi().getPolygon().ypoints[0];
+            coord[2] = imp.getSlice();
+        }
+    }
 
 /**    canvas =(imp.getWindow()).getCanvas();
     canvas.addMouseListener(this);
